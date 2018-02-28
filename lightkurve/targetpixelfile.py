@@ -1,13 +1,16 @@
 from __future__ import division, print_function
+import datetime
+import os
 import warnings
 
 from astropy.io import fits
+from astropy.nddata import Cutout2D
 from astropy.table import Table
-from astropy.time import Time
-from astropy.wcs import WCS, FITSFixedWarning
+from astropy.wcs import WCS
 from matplotlib import patches
 import numpy as np
 
+from . import PACKAGEDIR
 from .lightcurve import KeplerLightCurve, LightCurve
 from .prf import SimpleKeplerPRF
 from .utils import KeplerQualityFlags, plot_image, bkjd_to_time
@@ -56,6 +59,7 @@ class TessTargetPixelFile(TargetPixelFile):
         http://archive.stsci.edu/kepler/manuals/archive_manual.pdf
     """
 
+
 class KeplerTargetPixelFile(TargetPixelFile):
     """
     Defines a TargetPixelFile class for the Kepler/K2 Mission.
@@ -63,8 +67,8 @@ class KeplerTargetPixelFile(TargetPixelFile):
 
     Attributes
     ----------
-    path : str
-        Path to a Kepler Target Pixel (FITS) File.
+    path : str or `astropy.io.fits.HDUList`
+        Path to a Kepler Target Pixel (FITS) File or a `HDUList` object.
     quality_bitmask : str or int
         Bitmask specifying quality flags of cadences that should be ignored.
         If `None` is passed, then no cadences are ignored.
@@ -83,7 +87,10 @@ class KeplerTargetPixelFile(TargetPixelFile):
     def __init__(self, path, quality_bitmask=KeplerQualityFlags.DEFAULT_BITMASK,
                  **kwargs):
         self.path = path
-        self.hdu = fits.open(self.path, **kwargs)
+        if isinstance(path, fits.HDUList):
+            self.hdu = path
+        else:
+            self.hdu = fits.open(self.path, **kwargs)
         self.quality_bitmask = quality_bitmask
         self.quality_mask = self._quality_mask(quality_bitmask)
 
@@ -376,10 +383,6 @@ class KeplerTargetPixelFile(TargetPixelFile):
         except:
             return None
 
-    def to_fits(self):
-        """Save the TPF to fits"""
-        raise NotImplementedError
-
     def _parse_aperture_mask(self, aperture_mask):
         """Parse the `aperture_mask` parameter as given by a user.
 
@@ -537,3 +540,239 @@ class KeplerTargetPixelFile(TargetPixelFile):
         aperture_mask = self._parse_aperture_mask(aperture_mask)
         return LightCurve(flux=np.nansum(self.flux_bkg[:, aperture_mask], axis=1),
                           time=self.time, flux_err=self.flux_bkg_err)
+
+    def to_fits(self, output_fn=None, overwrite=False):
+        """Writes the TPF to a FITS file on disk."""
+        if output_fn is None:
+            output_fn = "{}-targ.fits".format(self.keplerid)
+        self.hdu.writeto(output_fn, overwrite=overwrite, checksum=True)
+
+    @staticmethod
+    def from_fits_images(images, position, size=(10, 10), extension=None,
+                         target_id="unnamed-target"):
+        """Creates a new Target Pixel File from a set of images.
+
+        This can be used to cut out a TPF from a series of FFI or superstamp
+        images.
+
+        Attributes
+        ----------
+        images : list of str, or list of fits.ImageHDU objects
+            Sorted list of FITS filename paths or ImageHDU objects to get
+            the data from.
+        position : astropy.SkyCoord
+            Position around which to cut out pixels.
+        size : (int, int)
+            Dimensions (cols, rows) to cut out around `position`.
+        extension : int or str
+            If `images` is a list of filenames, provide the extension number
+            or name to use. Default: 0.
+        target_id : int or str
+            Unique identifier of the target to be recorded in the TPF.
+
+        Returns
+        -------
+        tpf : KeplerTargetPixelFile
+            A new Target Pixel File assembled from the images.
+        """
+        if extension is None:
+            if isinstance(images[0], str) and images[0].endswith("ffic.fits"):
+                extension = 1  # TESS FFIs have the image data in extension #1
+            else:
+                extension = 0  # Default is to use the primary HDU
+
+        factory = KeplerTargetPixelFileFactory(n_cadences=len(images),
+                                               n_rows=size[0],
+                                               n_cols=size[1],
+                                               target_id=target_id)
+        for idx, img in enumerate(images):
+            if isinstance(img, fits.ImageHDU):
+                hdu = img
+            elif isinstance(img, fits.HDUList):
+                hdu = img[extension]
+            else:
+                hdu = fits.open(img)[extension]
+            if idx == 0:  # Get default keyword values from the first image
+                factory.keywords = hdu.header
+            cutout = Cutout2D(hdu.data, position, wcs=WCS(hdu.header),
+                              size=size, mode='partial')
+            factory.add_cadence(frameno=idx, flux=cutout.data, header=hdu.header)
+        return factory.get_tpf()
+
+
+class KeplerTargetPixelFileFactory(object):
+    """Class to create a KeplerTargetPixelFile."""
+
+    def __init__(self, n_cadences, n_rows, n_cols, target_id="unnamed-target",
+                 keywords={}):
+        self.n_cadences = n_cadences
+        self.n_rows = n_rows
+        self.n_cols = n_cols
+        self.target_id = target_id
+        self.keywords = keywords
+
+        # Initialize the 3D data structures
+        self.raw_cnts = np.empty((n_cadences, n_rows, n_cols), dtype='int')
+        self.flux = np.empty((n_cadences, n_rows, n_cols), dtype='float32')
+        self.flux_err = np.empty((n_cadences, n_rows, n_cols), dtype='float32')
+        self.flux_bkg = np.empty((n_cadences, n_rows, n_cols), dtype='float32')
+        self.flux_bkg_err = np.empty((n_cadences, n_rows, n_cols), dtype='float32')
+        self.cosmic_rays = np.empty((n_cadences, n_rows, n_cols), dtype='float32')
+
+        # Set 3D data defaults
+        self.raw_cnts[:, :, :] = -1
+        self.flux[:, :, :] = np.nan
+        self.flux_err[:, :, :] = np.nan
+        self.flux_bkg[:, :, :] = np.nan
+        self.flux_bkg_err[:, :, :] = np.nan
+        self.cosmic_rays[:, :, :] = np.nan
+
+        # Initialize the 1D data structures
+        self.mjd = np.zeros(n_cadences, dtype='float64')
+        self.time = np.zeros(n_cadences, dtype='float64')
+        self.timecorr = np.zeros(n_cadences, dtype='float32')
+        self.cadenceno = np.zeros(n_cadences, dtype='int')
+        self.quality = np.zeros(n_cadences, dtype='int')
+        self.pos_corr1 = np.zeros(n_cadences, dtype='float32')
+        self.pos_corr2 = np.zeros(n_cadences, dtype='float32')
+
+    def add_cadence(self, frameno, raw_cnts=None, flux=None, flux_err=None,
+                    flux_bkg=None, flux_bkg_err=None, cosmic_rays=None,
+                    header={}):
+        """Populate the data for a single cadence."""
+        # 2D-data
+        for col in ['raw_cnts', 'flux', 'flux_err', 'flux_bkg',
+                    'flux_bkg_err', 'cosmic_rays']:
+            if locals()[col] is not None:
+                vars(self)[col][frameno] = locals()[col]
+        # 1D-data
+        if 'MIDTIME' in header:
+            self.mjd[frameno] = header['MIDTIME']
+            self.time[frameno] = header['MIDTIME']
+        if 'TIMECORR' in header:
+            self.timecorr[frameno] = header['TIMECORR']
+        if 'CADENCEN' in header:
+            self.cadenceno[frameno] = header['CADENCEN']
+        if 'QUALITY' in header:
+            self.quality[frameno] = header['QUALITY']
+        if 'POSCORR1' in header:
+            self.pos_corr1[frameno] = header['POSCORR1']
+        if 'POSCORR2' in header:
+            self.pos_corr2[frameno] = header['POSCORR2']
+
+    def get_tpf(self):
+        """Returns a KeplerTargetPixelFile object."""
+        return KeplerTargetPixelFile(self._hdulist())
+
+    def _hdulist(self):
+        """Returns an astropy.io.fits.HDUList object."""
+        return fits.HDUList([self._make_primary_hdu(),
+                             self._make_target_extension(),
+                             self._make_aperture_extension()])
+
+    def _header_template(self, extension):
+        """Returns a template `fits.Header` object for a given extension."""
+        template_fn = os.path.join(PACKAGEDIR, "data",
+                                   "tpf-ext{}-header.txt".format(extension))
+        return fits.Header.fromtextfile(template_fn)
+
+    def _make_primary_hdu(self, keywords={}):
+        """Returns the primary extension (#0)."""
+        hdu = fits.PrimaryHDU()
+        # Copy the default keywords from a template file from the MAST archive
+        tmpl = self._header_template(0)
+        for kw in tmpl:
+            hdu.header[kw] = (tmpl[kw], tmpl.comments[kw])
+        # Override the defaults where necessary
+        hdu.header['ORIGIN'] = "Unofficial data product"
+        hdu.header['DATE'] = datetime.datetime.now().strftime("%Y-%m-%d")
+        hdu.header['CREATOR'] = "lightkurve"
+        hdu.header['OBJECT'] = self.target_id
+        hdu.header['KEPLERID'] = self.target_id
+        # Empty a bunch of keywords rather than having incorrect info
+        for kw in ["PROCVER", "FILEVER", "CHANNEL", "MODULE", "OUTPUT",
+                   "TIMVERSN", "CAMPAIGN", "DATA_REL", "TTABLEID",
+                   "RA_OBJ", "DEC_OBJ"]:
+            hdu.header[kw] = ""
+        return hdu
+
+    def _make_target_extension(self):
+        """Create the 'TARGETTABLES' extension (i.e. extension #1)."""
+        # Turn the data arrays into fits columns and initialize the HDU
+        coldim = '({},{})'.format(self.n_cols, self.n_rows)
+        eformat = '{}E'.format(self.n_rows * self.n_cols)
+        jformat = '{}J'.format(self.n_rows * self.n_cols)
+        cols = []
+        cols.append(fits.Column(name='TIME', format='D', unit='BJD - 2454833',
+                                array=self.time))
+        cols.append(fits.Column(name='TIMECORR', format='E', unit='D',
+                                array=self.timecorr))
+        cols.append(fits.Column(name='CADENCENO', format='J',
+                                array=self.cadenceno))
+        cols.append(fits.Column(name='RAW_CNTS', format=jformat,
+                                unit='count', dim=coldim,
+                                array=self.raw_cnts))
+        cols.append(fits.Column(name='FLUX', format=eformat,
+                                unit='e-/s', dim=coldim,
+                                array=self.flux))
+        cols.append(fits.Column(name='FLUX_ERR', format=eformat,
+                                unit='e-/s', dim=coldim,
+                                array=self.flux_err))
+        cols.append(fits.Column(name='FLUX_BKG', format=eformat,
+                                unit='e-/s', dim=coldim,
+                                array=self.flux_bkg))
+        cols.append(fits.Column(name='FLUX_BKG_ERR', format=eformat,
+                                unit='e-/s', dim=coldim,
+                                array=self.flux_bkg_err))
+        cols.append(fits.Column(name='COSMIC_RAYS', format=eformat,
+                                unit='e-/s', dim=coldim,
+                                array=self.cosmic_rays))
+        cols.append(fits.Column(name='QUALITY', format='J',
+                                array=self.quality))
+        cols.append(fits.Column(name='POS_CORR1', format='E', unit='pixels',
+                                array=self.pos_corr1))
+        cols.append(fits.Column(name='POS_CORR2', format='E', unit='pixels',
+                                array=self.pos_corr2))
+        coldefs = fits.ColDefs(cols)
+        hdu = fits.BinTableHDU.from_columns(coldefs)
+
+        # Set the header with defaults
+        template = self._header_template(1)
+        for kw in template:
+            if kw not in ['XTENSION', 'NAXIS1', 'NAXIS2', 'CHECKSUM', 'BITPIX']:
+                try:
+                    hdu.header[kw] = (self.keywords[kw],
+                                      self.keywords.comments[kw])
+                except KeyError:
+                    hdu.header[kw] = (template[kw],
+                                      template.comments[kw])
+
+        # Override the defaults where necessary
+        hdu.header['EXTNAME'] = 'TARGETTABLES'
+        hdu.header['OBJECT'] = self.target_id
+        hdu.header['KEPLERID'] = self.target_id
+        for n in [5, 6, 7, 8, 9]:
+            hdu.header["TFORM{}".format(n)] = eformat
+            hdu.header["TDIM{}".format(n)] = coldim
+        hdu.header['TFORM4'] = jformat
+        hdu.header['TDIM4'] = coldim
+
+        return hdu
+
+    def _make_aperture_extension(self):
+        """Create the aperture mask extension (i.e. extension #2)."""
+        mask = 3 * np.ones((self.n_rows, self.n_cols), dtype='int32')
+        hdu = fits.ImageHDU(mask)
+
+        # Set the header from the template TPF again
+        template = self._header_template(2)
+        for kw in template:
+            if kw not in ['XTENSION', 'NAXIS1', 'NAXIS2', 'CHECKSUM', 'BITPIX']:
+                try:
+                    hdu.header[kw] = (self.keywords[kw],
+                                      self.keywords.comments[kw])
+                except KeyError:
+                    hdu.header[kw] = (template[kw],
+                                      template.comments[kw])
+        hdu.header['EXTNAME'] = 'APERTURE'
+        return hdu
