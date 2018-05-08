@@ -798,6 +798,10 @@ class KeplerTargetPixelFile(TargetPixelFile):
                                                   'log_stretch': screen_slider})
         display(ui, out)
 
+    def show_gaia():
+        '''show the gaia data '''
+        pass
+
     def get_bkg_lightcurve(self, aperture_mask=None):
         aperture_mask = self._parse_aperture_mask(aperture_mask)
         return LightCurve(flux=np.nansum(self.flux_bkg[:, aperture_mask], axis=1),
