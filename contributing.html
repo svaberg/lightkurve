@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Contributing &mdash; lightkurve 1.0.0dev documentation</title>
+  <title>Contributing and reporting issues &mdash; lightkurve 1.0b9 documentation</title>
   
 
   
@@ -35,9 +35,9 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="lightkurve 1.0.0dev documentation" href="index.html"/>
-        <link rel="next" title="lightkurve tutorials" href="tutorials/index.html"/>
-        <link rel="prev" title="Installation" href="install.html"/> 
+    <link rel="top" title="lightkurve 1.0b9 documentation" href="index.html"/>
+        <link rel="next" title="Citing and acknowledging lightkurve" href="citing.html"/>
+        <link rel="prev" title="How to identify time-variable background noise (“rolling bands”)?" href="tutorials/2.06-identify-rolling-band.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -61,7 +61,7 @@
 
           
             
-            <img src="_static/lightkurve.gif" class="logo" />
+            <img src="_static/lightkurve.png" class="logo" />
           
           </a>
 
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                1.0.0dev
+                1.0b9
               </div>
             
           
@@ -93,17 +93,27 @@
               
             
             
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/section1.html">Introduction to lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/section2.html">Science with lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/section3.html">Systematics correction using lightkurve</a></li>
+</ul>
+<p class="caption"><span class="caption-text">About lightkurve</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing and reporting issues</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#proposing-changes-to-lightkurve-using-github-pull-requests">Proposing changes to lightkurve using GitHub pull requests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#coding-and-documentation-guidelines">Coding and documentation guidelines</a></li>
 </ul>
 </li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">lightkurve tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citing.html">Citing and acknowledging lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other_software.html">Other software</a></li>
 </ul>
 
             
@@ -148,7 +158,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Contributing</li>
+      <li>Contributing and reporting issues</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -201,8 +211,8 @@
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="contributing">
-<span id="id1"></span><h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="contributing-and-reporting-issues">
+<span id="contributing"></span><h1>Contributing and reporting issues<a class="headerlink" href="#contributing-and-reporting-issues" title="Permalink to this headline">¶</a></h1>
 <p><strong>lightkurve</strong> is actively developed on its <a class="reference external" href="https://github.com/KeplerGO/lightkurve">GitHub repository</a>.</p>
 <p>If you encounter a problem with <strong>lightkurve</strong>, we encourage you to
 <a class="reference external" href="https://github.com/KeplerGO/lightkurve/issues">open an issue on the GitHub repository</a>
@@ -218,33 +228,33 @@ Once you are ready to propose the changes, please go ahead and open a pull reque
 In brief, the steps are as follows:</p>
 <ol class="arabic simple">
 <li>Fork the main <strong>lightkurve</strong> repository by logging into GitHub, browsing to
-<code class="docutils literal"><span class="pre">https://github.com/KeplerGO/lightkurve</span></code> and clicking on <code class="docutils literal"><span class="pre">Fork</span></code> in the top right corner.</li>
+<code class="docutils literal notranslate"><span class="pre">https://github.com/KeplerGO/lightkurve</span></code> and clicking on <code class="docutils literal notranslate"><span class="pre">Fork</span></code> in the top right corner.</li>
 <li>Clone your fork to your computer:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git clone https://github.com/YOUR-GITHUB-USERNAME/lightkurve.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/YOUR-GITHUB-USERNAME/lightkurve.git
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
 <li>Install the development version of lightkurve:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> lightkurve
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> lightkurve
 $ pip install -e .
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
 <li>Add the KeplerGO remote to your GitHub enviroment:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git remote add upstream https://github.com/KeplerGO/lightkurve.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git remote add upstream https://github.com/KeplerGO/lightkurve.git
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">
 <li>Let’s make sure everything is setup correctly. Execute:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git remote -v
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git remote -v
 </pre></div>
 </div>
 <p>You should see something like this:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>origin      https://github.com/YOUR-GITHUB-USERNAME/lightkurve.git <span class="o">(</span>fetch<span class="o">)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>origin      https://github.com/YOUR-GITHUB-USERNAME/lightkurve.git <span class="o">(</span>fetch<span class="o">)</span>
 origin      https://github.com/YOUR-GITHUB-USERNAME/lightkurve.git <span class="o">(</span>push<span class="o">)</span>
 upstream    https://github.com/KeplerGO/lightkurve.git <span class="o">(</span>fetch<span class="o">)</span>
 upstream    https://github.com/KeplerGO/lightkurve.git <span class="o">(</span>push<span class="o">)</span>
@@ -253,20 +263,20 @@ upstream    https://github.com/KeplerGO/lightkurve.git <span class="o">(</span>p
 <ol class="arabic simple" start="6">
 <li>Now you are ready to start contributing; make a new branch with a name of your choice and checkout:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git branch name-of-your-branch
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git branch name-of-your-branch
 $ git checkout name-of-your-branch
 </pre></div>
 </div>
 <ol class="arabic simple" start="7">
 <li>Do the changes you want and add them:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git add FILE-YOU-ADDED-OR-MODIFIED
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git add FILE-YOU-ADDED-OR-MODIFIED
 </pre></div>
 </div>
 <ol class="arabic simple" start="8">
 <li>Commit and push your changes:</li>
 </ol>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git commit -m <span class="s2">&quot;description of changes&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git commit -m <span class="s2">&quot;description of changes&quot;</span>
 $ git push origin name-of-my-branch
 </pre></div>
 </div>
@@ -293,10 +303,10 @@ as documented in <a class="reference external" href="http://docs.astropy.org/en/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tutorials/index.html" class="btn btn-neutral float-right" title="lightkurve tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="citing.html" class="btn btn-neutral float-right" title="Citing and acknowledging lightkurve" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="install.html" class="btn btn-neutral" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorials/2.06-identify-rolling-band.html" class="btn btn-neutral" title="How to identify time-variable background noise (“rolling bands”)?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -305,7 +315,7 @@ as documented in <a class="reference external" href="http://docs.astropy.org/en/
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright lightkurve Developers and Contributors.
+        &copy; Copyright lightkurve developers and contributors.
 
     </p>
   </div>
@@ -327,7 +337,7 @@ as documented in <a class="reference external" href="http://docs.astropy.org/en/
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.0.0dev',
+            VERSION:'1.0b9',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

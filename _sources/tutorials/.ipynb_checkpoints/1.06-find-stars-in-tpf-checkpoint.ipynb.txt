@@ -1,0 +1,273 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# How to find which sources are in your `TPF`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Often Target Pixel Files contain more than one source: background stars, multiple stars, or even bright stars just-off-the-edge sending their PDF wings into your target-of-interest.  `lightkurve` now offers a convenience function to find out what sources may be present in-and-around your target pixel file."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Using `.get_sources()`\n",
+    "\n",
+    "The function `get_sources` returns an astropy table of sources likely to affect the flux in your target of interest.  The function works by querying one of three catalogs: KIC, EPIC, or Gaia DR2.  The query is centered on your TPF, and extends to a perimeter of 3 pixels beyond the TPF boundary."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from lightkurve import KeplerTargetPixelFile\n",
+    "tpf = KeplerTargetPixelFile.from_archive(246909194)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To get the nearby sources from KIC/EPIC you can simply run the method `.get_sources` with its defaults:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import astropy.units as u"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nearby_source_table = tpf.get_sources(dist_tolerance=360)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<i>Table masked=True length=22</i>\n",
+       "<table id=\"table43616321264\" class=\"table-striped table-bordered table-condensed\">\n",
+       "<thead><tr><th>id</th><th>ra</th><th>dec</th><th>pmra</th><th>pmdec</th><th>mag</th></tr></thead>\n",
+       "<thead><tr><th></th><th>deg</th><th>deg</th><th>mas / yr</th><th>mas / yr</th><th>mag</th></tr></thead>\n",
+       "<thead><tr><th>int16</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float32</th></tr></thead>\n",
+       "<tr><td>32767</td><td>78.424977</td><td>16.747125</td><td>1.400</td><td>-2.100</td><td>16.725</td></tr>\n",
+       "<tr><td>32767</td><td>78.430953</td><td>16.752539</td><td>-5.800</td><td>20.200</td><td>15.777</td></tr>\n",
+       "<tr><td>32767</td><td>78.441072</td><td>16.753039</td><td>3.800</td><td>-4.400</td><td>15.516</td></tr>\n",
+       "<tr><td>32767</td><td>78.351061</td><td>16.750286</td><td>-3.000</td><td>-1.000</td><td>17.814</td></tr>\n",
+       "<tr><td>32767</td><td>78.364672</td><td>16.750397</td><td>-4.000</td><td>5.000</td><td>17.201</td></tr>\n",
+       "<tr><td>32767</td><td>78.354227</td><td>16.761405</td><td>6.100</td><td>9.700</td><td>12.182</td></tr>\n",
+       "<tr><td>32767</td><td>78.391595</td><td>16.738623</td><td>-2.000</td><td>-3.000</td><td>17.843</td></tr>\n",
+       "<tr><td>32767</td><td>78.383546</td><td>16.740597</td><td>1.500</td><td>6.900</td><td>15.104</td></tr>\n",
+       "<tr><td>32767</td><td>78.415418</td><td>16.741883</td><td>499.900</td><td>312.100</td><td>14.059</td></tr>\n",
+       "<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>\n",
+       "<tr><td>32767</td><td>78.385187</td><td>16.749938</td><td>0.300</td><td>-1.900</td><td>16.614</td></tr>\n",
+       "<tr><td>32767</td><td>78.403490</td><td>16.752885</td><td>-1.100</td><td>0.900</td><td>16.115</td></tr>\n",
+       "<tr><td>32767</td><td>78.390876</td><td>16.754718</td><td>-0.300</td><td>0.800</td><td>16.119</td></tr>\n",
+       "<tr><td>32767</td><td>78.421002</td><td>16.746187</td><td>-7.000</td><td>-2.000</td><td>17.736</td></tr>\n",
+       "<tr><td>32767</td><td>78.417108</td><td>16.747726</td><td>2.300</td><td>-3.400</td><td>16.655</td></tr>\n",
+       "<tr><td>32767</td><td>78.416535</td><td>16.754387</td><td>2.000</td><td>5.000</td><td>17.870</td></tr>\n",
+       "<tr><td>32767</td><td>78.417188</td><td>16.765312</td><td>16.100</td><td>-24.400</td><td>16.630</td></tr>\n",
+       "<tr><td>32767</td><td>78.419637</td><td>16.766749</td><td>-4.000</td><td>-7.600</td><td>16.590</td></tr>\n",
+       "<tr><td>32767</td><td>78.413185</td><td>16.767891</td><td>2.000</td><td>-6.000</td><td>17.360</td></tr>\n",
+       "<tr><td>32767</td><td>78.423332</td><td>16.768367</td><td>-0.700</td><td>-0.200</td><td>14.707</td></tr>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "<Table masked=True length=22>\n",
+       "  id      ra        dec        pmra     pmdec     mag  \n",
+       "         deg        deg      mas / yr  mas / yr   mag  \n",
+       "int16  float64    float64    float64   float64  float32\n",
+       "----- ---------- ---------- --------- --------- -------\n",
+       "32767  78.424977  16.747125     1.400    -2.100  16.725\n",
+       "32767  78.430953  16.752539    -5.800    20.200  15.777\n",
+       "32767  78.441072  16.753039     3.800    -4.400  15.516\n",
+       "32767  78.351061  16.750286    -3.000    -1.000  17.814\n",
+       "32767  78.364672  16.750397    -4.000     5.000  17.201\n",
+       "32767  78.354227  16.761405     6.100     9.700  12.182\n",
+       "32767  78.391595  16.738623    -2.000    -3.000  17.843\n",
+       "32767  78.383546  16.740597     1.500     6.900  15.104\n",
+       "32767  78.415418  16.741883   499.900   312.100  14.059\n",
+       "  ...        ...        ...       ...       ...     ...\n",
+       "32767  78.385187  16.749938     0.300    -1.900  16.614\n",
+       "32767  78.403490  16.752885    -1.100     0.900  16.115\n",
+       "32767  78.390876  16.754718    -0.300     0.800  16.119\n",
+       "32767  78.421002  16.746187    -7.000    -2.000  17.736\n",
+       "32767  78.417108  16.747726     2.300    -3.400  16.655\n",
+       "32767  78.416535  16.754387     2.000     5.000  17.870\n",
+       "32767  78.417188  16.765312    16.100   -24.400  16.630\n",
+       "32767  78.419637  16.766749    -4.000    -7.600  16.590\n",
+       "32767  78.413185  16.767891     2.000    -6.000  17.360\n",
+       "32767  78.423332  16.768367    -0.700    -0.200  14.707"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "nearby_source_table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "You can also run with Gaia, and adjust the magnitude limit and how-far-beyond the TPF boundary you wish to identify sources.  The Gaia queries warn you that the \"magnitude limit\" refers to Gaia DR2 $G$ magnitudes and not Kepler band magnitudes.  Presently high-proper motion sources are not supported."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "40"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "np.max(tpf.flux.shape[1:2])*4"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "Gaia RAs and Decs are at EPOC 2015.5. These RA/Decs have not been corrected.\n",
+      "Gaia magnitudes are in Gaia Gmag not KepMag\n"
+     ]
+    }
+   ],
+   "source": [
+    "dr2_source_table = tpf.get_sources(catalog='Gaia', magnitude_limit=20, dist_tolerance=3)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<i>Table masked=True length=8</i>\n",
+       "<table id=\"table43618557400\" class=\"table-striped table-bordered table-condensed\">\n",
+       "<thead><tr><th>id</th><th>ra</th><th>dec</th><th>pmra</th><th>pmdec</th><th>mag</th></tr></thead>\n",
+       "<thead><tr><th></th><th>deg</th><th>deg</th><th>mas / yr</th><th>mas / yr</th><th>mag</th></tr></thead>\n",
+       "<thead><tr><th>bytes28</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th><th>float64</th></tr></thead>\n",
+       "<tr><td>Gaia DR2 3394770845436752640</td><td>78.39440428676</td><td>16.83221154788</td><td>-0.176</td><td>-0.150</td><td>16.0793</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771051593554944</td><td>78.38596911588</td><td>16.83781511277</td><td>-6.315</td><td>-2.935</td><td>19.7103</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771051595182208</td><td>78.39034701499</td><td>16.84205041768</td><td>0.498</td><td>-0.949</td><td>13.2938</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771051595182080</td><td>78.39643917376</td><td>16.83952713305</td><td>1.505</td><td>0.000</td><td>16.3929</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771047298909184</td><td>78.38298711489</td><td>16.83609167480</td><td>1.128</td><td>0.014</td><td>19.0751</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771150378145408</td><td>78.39106279349</td><td>16.84896242855</td><td>0.467</td><td>-1.017</td><td>16.5074</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771150378139008</td><td>78.39895331676</td><td>16.84257347622</td><td>2.214</td><td>-2.006</td><td>18.4105</td></tr>\n",
+       "<tr><td>Gaia DR2 3394771150378138880</td><td>78.39982615824</td><td>16.84448667253</td><td>0.295</td><td>-0.745</td><td>16.3749</td></tr>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "<Table masked=True length=8>\n",
+       "             id                     ra       ...   pmdec     mag  \n",
+       "                                   deg       ...  mas / yr   mag  \n",
+       "          bytes28                float64     ...  float64  float64\n",
+       "---------------------------- --------------- ... --------- -------\n",
+       "Gaia DR2 3394770845436752640  78.39440428676 ...    -0.150 16.0793\n",
+       "Gaia DR2 3394771051593554944  78.38596911588 ...    -2.935 19.7103\n",
+       "Gaia DR2 3394771051595182208  78.39034701499 ...    -0.949 13.2938\n",
+       "Gaia DR2 3394771051595182080  78.39643917376 ...     0.000 16.3929\n",
+       "Gaia DR2 3394771047298909184  78.38298711489 ...     0.014 19.0751\n",
+       "Gaia DR2 3394771150378145408  78.39106279349 ...    -1.017 16.5074\n",
+       "Gaia DR2 3394771150378139008  78.39895331676 ...    -2.006 18.4105\n",
+       "Gaia DR2 3394771150378138880  78.39982615824 ...    -0.745 16.3749"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dr2_source_table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Future features in lightkurve will be designed to consume the `get_sources` function.  Specifically PSF photometry and an interactive `bokeh` widget will automatically show the sources."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

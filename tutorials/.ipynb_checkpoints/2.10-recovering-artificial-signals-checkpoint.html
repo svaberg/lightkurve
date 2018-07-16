@@ -1,0 +1,964 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Recover injected signals from synthetic lightcurves &mdash; lightkurve 1.0b9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="lightkurve 1.0b9 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> lightkurve
+          
+
+          
+            
+            <img src="../../_static/lightkurve.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0b9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API documentation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../section1.html">Introduction to lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../section2.html">Science with lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../section3.html">Systematics correction using lightkurve</a></li>
+</ul>
+<p class="caption"><span class="caption-text">About lightkurve</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing and reporting issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citing.html">Citing and acknowledging lightkurve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../other_software.html">Other software</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">lightkurve</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Recover injected signals from synthetic lightcurves</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/tutorials/.ipynb_checkpoints/2.10-recovering-artificial-signals-checkpoint.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+/* nice headers on first paragraph of info/warning boxes */
+.admonition .first {
+    margin: -12px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    color: #fff;
+    line-height: 1;
+    display: block;
+}
+.admonition.warning .first {
+    background: #f0b37e;
+}
+.admonition.note .first {
+    background: #6ab0de;
+}
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Recover-injected-signals-from-synthetic-lightcurves">
+<h1>Recover injected signals from synthetic lightcurves<a class="headerlink" href="#Recover-injected-signals-from-synthetic-lightcurves" title="Permalink to this headline">¶</a></h1>
+<p>In this notebook we inject and recover signals to assess the limits of
+signal discovery in K2 lightcurves.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>from __future__ import print_function
+from pprint import pprint
+from lightkurve import KeplerTargetPixelFile
+import numpy as np
+import matplotlib.pyplot as plt
+import sncosmo
+from astropy.table import Table
+%matplotlib inline
+</pre></div>
+</div>
+</div>
+<p>Let’s get a galaxy target pixel file from MAST.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>tpf = KeplerTargetPixelFile.from_archive(220381074)   #KeplerTargetPixelFile
+lc = tpf.to_lightcurve(aperture_mask=&#39;all&#39;)           #KeplerLightCurve
+
+#Remove nans and outliers
+lc = lc.remove_nans().remove_outliers()
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>tpf.plot();
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_5_0.png" src="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_5_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>import lightkurve.injection as inj
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>model = inj.SupernovaModel(T0=2600, source=&#39;hsiao&#39;, bandpass=&#39;kepler&#39;, z=0.5, amplitude=3.e-4)
+
+lcinj = inj.inject(lc, model)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>lc.plot()
+lcinj.plot();
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_8_0.png" src="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_8_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_8_1.png" src="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_8_1.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>lcinj = lcinj.remove_nans()
+lcinj = lcinj.normalize()
+</pre></div>
+</div>
+</div>
+<div class="section" id="Now-attempt-to-&quot;recover&quot;-the-signal-through-fitting-methods">
+<h2>Now attempt to “recover” the signal through fitting methods<a class="headerlink" href="#Now-attempt-to-"recover"-the-signal-through-fitting-methods" title="Permalink to this headline">¶</a></h2>
+<p>Fitting methods include: - optimization (e.g. <code class="docutils literal notranslate"><span class="pre">scipy.optimize</span></code>) - MCMC
+sampling (e.g. <code class="docutils literal notranslate"><span class="pre">emcee</span></code>)</p>
+<p>The goal at the end would be to compare the <strong>True parameters</strong>—that
+is, the values that were input to make the synthetic lightcurve— with
+the <em>recovered parameters</em>, the ones that we derived from our fit. We
+would call the signal “sucessfully” recovered if the <em>recovered
+parameters</em> match the True parameters to within either: - A fixed
+tolerance level, <em>or</em> - A threshold of estimated uncertainty of
+parameters (e.g. <span class="math notranslate">\(&gt;1\sigma\)</span>), both within the injected signal
+<em>and</em> above zero by some other threshold (e.g. <span class="math notranslate">\(&gt;3\sigma\)</span>).</p>
+<p>So for example, let’s say we inject a supernova signal with an amplitude
+of <span class="math notranslate">\(a = 15.0\)</span> photons/sec.</p>
+<p>If we recover a signal with <span class="math notranslate">\(a = 14\pm 2\)</span>, we would consider that
+injected signal to be “recovered”.</p>
+<p>However, if we recover a signal with <span class="math notranslate">\(a = 16\pm 20\)</span>, we would
+<em>not</em> consider that injected signal to be “recovered” because the signal
+is consistent with <em>zero</em> supernova, despite being consistent with the
+injected signal.</p>
+<p>As another example, if we recover a signal with <span class="math notranslate">\(a = 16\pm 5\)</span>, we
+<em>would</em> consider that injected signal to be “recovered” because the
+signal is just barely above our threshold of <span class="math notranslate">\(3\sigma\)</span>.</p>
+<p>The recovery of <span class="math notranslate">\(a = 27\pm 1\)</span> would disagree with our injected
+signal of <span class="math notranslate">\(a = 15\)</span>, and therefore would <em>not</em> be considered a
+recovery.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>yes_no_based_on_threshold, recov_params = lcinj.recover(threshold_sigmas=1)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">AttributeError</span>                            Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-18-1d4d123a47d1&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span>yes_no_based_on_threshold<span class="ansi-blue-fg">,</span> recov_params <span class="ansi-blue-fg">=</span> lcinj<span class="ansi-blue-fg">.</span>recover<span class="ansi-blue-fg">(</span>threshold_sigmas<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-red-fg">AttributeError</span>: &#39;SyntheticLightCurve&#39; object has no attribute &#39;recover&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>True, {&#39;T0&#39;:2601, &#39;a&#39;:15.2}
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[17]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>(True, {&#39;T0&#39;: 2601, &#39;a&#39;: 15.2})
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>yes_or_nos = [True, False, True, True, True]
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>lc.inject([model1, model2])
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>models.amp
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[19]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;amplitude&#39;: 0.0003}
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>[15, 10, 11, 12]
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>recovered_amps = []
+amplitudes_in = [10, 11, 12, 13, 14, 15, 16]
+for amp in amplitudes_in:
+    model = inj.SupernovaModel(T0=2600, source=&#39;hsiao&#39;, bandpass=&#39;kepler&#39;, z=0.5, amplitude=amp)
+    lcinj = inj.inject(lc, model)
+    yes_no_based_on_threshold, recov_params = lcinj.recover(threshold_sigmas=3)
+    recovered_amps.append(recov_params[&#39;amp&#39;])
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>plot(amplitudes_in, recovered_array)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>from scipy.optimize import minimize
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>minimize()
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Exploratory-analysis">
+<h3>Exploratory analysis<a class="headerlink" href="#Exploratory-analysis" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [217]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>bandlist = [&#39;kepler&#39;]*len(lcinj.time)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [218]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>zpsys = [&#39;ab&#39;]*len(lcinj.time)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [219]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>data = sncosmo.load_example_data()
+
+print(type(data[&#39;time&#39;]))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;class &#39;astropy.table.column.Column&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [227]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+
+<span></span>model = sncosmo.Model(source=&#39;hsiao&#39;)
+
+
+data_dict = Table()
+
+data_dict[&#39;time&#39;] = lcinj.time
+data_dict[&#39;flux&#39;] = lcinj.flux
+data_dict[&#39;band&#39;] = bandlist
+data_dict[&#39;fluxerr&#39;] = lcinj.flux_err
+data_dict[&#39;zp&#39;] = [1]*len(lcinj.time)
+data_dict[&#39;zpsys&#39;] = zpsys
+data_dict[&#39;gain&#39;] = [2]*len(lcinj.time)
+data_dict[&#39;skynoise&#39;] = [8000]*len(lcinj.time)
+pprint(data_dict)
+
+params = {&#39;z&#39;: 0.5, &#39;t0&#39;:np.nanmedian(lc.time), &#39;amplitude&#39;:2.e-4}
+
+sncosmo.realize_lcs(data_dict, model, [params])
+
+
+
+
+
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Table length=3580&gt;
+       time               flux         band  ... zpsys  gain skynoise
+     float64            float64        str6  ...  str2 int64  int64
+------------------ ------------------ ------ ... ----- ----- --------
+ 2559.068293953511 0.9795227051425335 kepler ...    ab     2     8000
+   2559.0887261393  0.981499698103476 kepler ...    ab     2     8000
+2559.1091583246234 0.9788615927994317 kepler ...    ab     2     8000
+ 2559.129590509474 0.9846091374770265 kepler ...    ab     2     8000
+ 2559.150022693866 0.9783508046666788 kepler ...    ab     2     8000
+ 2559.170454877327 0.9797946542063519 kepler ...    ab     2     8000
+2559.1908870603147  0.979006720915693 kepler ...    ab     2     8000
+ 2559.211319342845 0.9766110194428061 kepler ...    ab     2     8000
+ 2559.231751424908 0.9772213188193069 kepler ...    ab     2     8000
+2559.2726158871665 0.9790412205636468 kepler ...    ab     2     8000
+               ...                ...    ... ...   ...   ...      ...
+ 2637.566874000062 0.9759012050175109 kepler ...    ab     2     8000
+ 2637.587305934503 0.9735215818698406 kepler ...    ab     2     8000
+2637.6077376694157 0.9772150567886938 kepler ...    ab     2     8000
+2637.6281696047954 0.9747541930098762 kepler ...    ab     2     8000
+ 2637.648601440633 0.9704968822179478 kepler ...    ab     2     8000
+2637.6690331767095 0.9727858763490494 kepler ...    ab     2     8000
+2637.6894651132534 0.9679523663529115 kepler ...    ab     2     8000
+ 2637.730328687496 0.9814136795725275 kepler ...    ab     2     8000
+ 2637.750760625204 0.9787622618108939 kepler ...    ab     2     8000
+2637.7711924633695 0.9746761294157723 kepler ...    ab     2     8000
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[227]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[&lt;Table length=3580&gt;
+        time         band          flux             fluxerr         zp  zpsys
+      float64        str6        float64            float64       int64  str2
+ ------------------ ------ ------------------- ------------------ ----- -----
+  2559.068293953511 kepler  15748.969231192117             8000.0     1    ab
+    2559.0887261393 kepler  -3251.360818890101             8000.0     1    ab
+ 2559.1091583246234 kepler -2158.6436877824603             8000.0     1    ab
+  2559.129590509474 kepler  -135.2950250877441             8000.0     1    ab
+  2559.150022693866 kepler -2120.0340363728174             8000.0     1    ab
+  2559.170454877327 kepler  16013.067029693488             8000.0     1    ab
+ 2559.1908870603147 kepler  -9164.304833118653             8000.0     1    ab
+  2559.211319342845 kepler    721.243577712484             8000.0     1    ab
+  2559.231751424908 kepler   10737.38511657054             8000.0     1    ab
+ 2559.2726158871665 kepler -3809.9929599385855             8000.0     1    ab
+                ...    ...                 ...                ...   ...   ...
+  2637.566874000062 kepler  252.77957908297583  8000.000000003058     1    ab
+  2637.587305934503 kepler  2285.6821754294388  8000.000000003055     1    ab
+ 2637.6077376694157 kepler -13666.286088295954  8000.000000003052     1    ab
+ 2637.6281696047954 kepler  1376.9535031246808 8000.0000000030495     1    ab
+  2637.648601440633 kepler -27739.180549072138  8000.000000003048     1    ab
+ 2637.6690331767095 kepler  17699.749929441256  8000.000000003044     1    ab
+ 2637.6894651132534 kepler  4768.2145065389805  8000.000000003042     1    ab
+  2637.730328687496 kepler   34.74097644277908  8000.000000003037     1    ab
+  2637.750760625204 kepler  16079.425969521646  8000.000000003034     1    ab
+ 2637.7711924633695 kepler  -6963.044527649089  8000.000000003032     1    ab]
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [228]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span># create a model
+
+# run the fit
+result, fitted_model = sncosmo.fit_lc(
+    data_dict, model, [&#39;z&#39;, &#39;t0&#39;, &#39;amplitude&#39;], bounds={&#39;z&#39;:(0.45, 0.55)})
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [229]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>sncosmo.plot_lc(data_dict, model=fitted_model, errors=result.errors, zp=1.0)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[229]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_32_0.png" src="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_32_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_32_1.png" src="../../_images/tutorials_.ipynb_checkpoints_2.10-recovering-artificial-signals-checkpoint_32_1.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [224]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>#data = sncosmo.load_example_data()
+#sncosmo.plot_lc(data)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+
+<span></span>import sncosmo
+lcinj = lc.inject_sn(t0=np.nanmedian(lc.time), source=&#39;hsiao&#39;, z=0.5, amplitude=2.e-4)
+        model = sncosmo.Model(source=&#39;hsiao&#39;)
+        model.set(t0=t0, **kwargs)
+bandflux = model.bandflux(&#39;kepler&#39;, self.time)
+mergedflux = self.flux + bandflux
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright lightkurve developers and contributors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0b9',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
